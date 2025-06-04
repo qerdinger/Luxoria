@@ -2,7 +2,9 @@ name: Luxoria Artifacts
 
 on:
   workflow_run:
-    workflows: ["Luxoria Desktop App Release", "Luxoria Standard Modules Release"]
+    workflows:
+      - "Luxoria Desktop App Release"
+      - "Luxoria Standard Modules Release"
     types:
       - completed
 
