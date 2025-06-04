@@ -1,0 +1,40 @@
+name: Luxoria Artifacts
+
+on:
+  workflow_run:
+    workflows: ["Luxoria Desktop App Release", "Luxoria Standard Modules Release"]
+    types:
+      - completed
+
+jobs:
+  release:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Zip each artifact separately
+        run: |
+          mkdir zips
+          for dir in artifacts/*; do
+            name=$(basename "$dir")
+            zip -r "zips/${name}.zip" "$dir"
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Luxoria Release ${{ github.run_number }}"
+          tag_name: "v${{ github.run_number }}"
+          body: |
+            This release includes individually packaged artifacts for:
+            - Desktop App (x64, x86, arm64)
+            - Modules: LuxEditor, LuxExport, LuxFilter, LuxImport
+            Each file is zipped per platform for direct download.
+          files: zips/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
